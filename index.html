@@ -43,20 +43,21 @@
   .swiper-slide img { width: 100%; height: 260px; object-fit: cover; border: 1px solid #eee; }
   .polaroid-caption { font-family: 'Brush Script MT', cursive; font-size: 20px; margin-top: 10px; color: #444; }
 
-  /* UI & Database Elements */
-  .countdown { font-size: 32px; font-weight: bold; margin: 20px auto; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+  /* Countdown & Input UI */
+  .countdown { font-size: 32px; font-weight: bold; margin: 20px auto; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
   .input-group { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; max-width: 400px; margin: 20px auto; }
   input, textarea { width: 90%; padding: 10px; margin: 5px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; }
   
+  /* Message Board Styling */
   #messages-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
-  .wish-card { background: #ffff88; width: 250px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; position: relative; }
+  .wish-card { background: #ffff88; width: 250px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; }
   
+  /* Visual Effects */
   .effect { position: fixed; top: -50px; animation: fall linear infinite; z-index: 10; pointer-events: none; }
   @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
   .scavenger-item { cursor: pointer; font-size: 40px; position: absolute; z-index: 1000; }
   .scavenger-item.found { display: none; }
 
-  /* Music Toggle Button */
   #musicToggle {
     position: fixed; bottom: 20px; right: 20px; z-index: 200;
     width: 50px; height: 50px; border-radius: 50%; background: white;
@@ -72,19 +73,20 @@
 <div id="musicToggle" onclick="toggleMusic()">🎵</div>
 
 <div class="page active" id="page1">
-  <h1 id="mainTitle">🎉 Countdown to the Big Day 🎉</h1>
+  <h1>🎉 Countdown to the Big Day 🎉</h1>
   <div class="countdown" id="countdown">Loading...</div>
   <p id="lockMessage" style="color: white; font-weight: bold;">Locked until Feb 14th 🔒</p>
   <button id="entryBtn" onclick="goToPage(2)" disabled>Go to Birthday Wishes 🎂</button>
   
   <div id="friendsOnly" style="display:none; margin-top: 20px; border-top: 1px dashed white; padding-top: 20px;">
-      <p style="color: white; font-weight: bold;">Special Guest Access Unlocked! ✨</p>
-      <button onclick="goToPage(2)" style="background: #4CAF50;">Enter Guest Book 🎈</button>
+      <p style="color: white; font-weight: bold;">Friend Access Unlocked! ✨</p>
+      <button onclick="goToPage(2)" style="background: #4CAF50;">View Memories 🎈</button>
+      <button onclick="goToPage(4)" style="background: #2196F3;">Go to Guest Book ✍️</button>
   </div>
 </div>
 
 <div class="page" id="page2">
-  <h1>Happy Birthday, Pravallika! 💖</h1>
+  <h1>Special Wishes 💖</h1>
   <div id="typewriter"></div>
 
   <div class="swiper">
@@ -96,19 +98,23 @@
   </div>
 
   <p id="starTracker" style="font-weight:bold; color: #ff4d6d;">Stars Found: 0/3</p>
+  <button onclick="goToPage(4)">Go to Guest Book ✍️</button>
+</div>
 
-  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.5); margin: 40px 0;">
-
-  <h2 id="boardTitle">📖 The Wish Board</h2>
+<div class="page" id="page4">
+  <h1>📖 The Guest Book</h1>
+  <p>Leave a beautiful wish for Pravallika!</p>
+  
   <div class="input-group">
     <input type="text" id="senderName" placeholder="Your Name">
     <textarea id="senderMsg" rows="2" placeholder="Write something sweet..."></textarea>
-    <button id="postBtn">Send Wish 💌</button>
+    <button id="postBtn">Post Wish 💌</button>
   </div>
-  
-  <button id="unlockWheelBtn" onclick="goToPage(3)" style="display:none; background:#4CAF50; margin-bottom: 20px;">✨ UNLOCKED: Go to Gift Wheel 🎡 ✨</button>
 
+  <button id="unlockWheelBtn" onclick="goToPage(3)" style="display:none; background:#4CAF50;">✨ UNLOCKED: Spin the Wheel 🎡 ✨</button>
+  
   <div id="messages-container"></div>
+  <button onclick="goToPage(2)" style="background: #777;">Back to Photos 🔙</button>
 </div>
 
 <div class="page" id="page3">
@@ -116,7 +122,7 @@
   <canvas id="wheelCanvas" width="350" height="350" style="margin:auto; display:block;"></canvas><br>
   <button id="spinBtn" onclick="spinWheel()">Spin for a Gift!</button>
   <h2 id="giftResult"></h2>
-  <button onclick="goToPage(2)">Back to Board 🔙</button>
+  <button onclick="goToPage(4)">Back to Guest Book 🔙</button>
 </div>
 
 <script type="module">
@@ -169,13 +175,8 @@ let musicPlaying = false;
 function toggleMusic() {
     const audio = document.getElementById('bgMusic');
     const btn = document.getElementById('musicToggle');
-    if (musicPlaying) {
-        audio.pause();
-        btn.innerText = "🔇";
-    } else {
-        audio.play();
-        btn.innerText = "🎵";
-    }
+    if (musicPlaying) { audio.pause(); btn.innerText = "🔇"; } 
+    else { audio.play().catch(()=>{}); btn.innerText = "🎵"; }
     musicPlaying = !musicPlaying;
 }
 
@@ -183,18 +184,12 @@ function goToPage(num) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page'+num).classList.add('active');
   
-  if(num >= 2 && !musicPlaying) {
-    toggleMusic();
-  }
+  if(num >= 2 && !musicPlaying) toggleMusic();
   
   if(num === 2) {
     startTypewriter();
     if(!swiperInstance) {
-      swiperInstance = new Swiper('.swiper', {
-        effect: 'cards',
-        grabCursor: true,
-        loop: true
-      });
+      swiperInstance = new Swiper('.swiper', { effect: 'cards', grabCursor: true, loop: true });
     }
   }
   window.scrollTo(0,0);
@@ -206,21 +201,16 @@ function startTypewriter() {
   const str = "Happy Birthday to the amazing Pravallika! 🎂 You truly make the world a brighter and more beautiful place just by being yourself. ✨💖 May your day be overflowing with as much love, laughter, and magic as you generously give to everyone around you! 🌸🥂 I hope this year brings you endless joy and the fulfillment of all your biggest dreams. 🌟🎈 Keep shining like the star you are! 💎💕";
   let i = 0;
   function type() {
-    if(i < str.length) {
-      el.innerHTML += str.charAt(i++);
-      setTimeout(type, 50);
-    }
+    if(i < str.length) { el.innerHTML += str.charAt(i++); setTimeout(type, 50); }
   }
   type();
 }
 
-// Mode Logic
 if(new URLSearchParams(window.location.search).get('mode') === 'friends') {
     document.getElementById('friendsOnly').style.display = 'block';
     document.getElementById('lockMessage').innerText = "Guest Access Enabled ✅";
 }
 
-// Timer Logic
 const target = new Date('Feb 14, 2026 00:00:00').getTime();
 setInterval(() => {
   const diff = target - Date.now();
@@ -233,7 +223,6 @@ setInterval(() => {
   }
 }, 1000);
 
-// Scavenger Hunt
 function collectStar(el) {
   if (!el.classList.contains('found')) {
     el.classList.add('found');
@@ -245,7 +234,7 @@ function collectStar(el) {
 }
 
 function placeStars() {
-  const spots = [{p:'page1',t:'10%',l:'10%'}, {p:'page2',t:'40%',l:'85%'}, {p:'page2',t:'90%',l:'10%'}];
+  const spots = [{p:'page1',t:'10%',l:'10%'}, {p:'page2',t:'80%',l:'80%'}, {p:'page4',t:'70%',l:'10%'}];
   spots.forEach(s => {
     const star = document.createElement('div');
     star.className = 'scavenger-item'; star.innerHTML = '⭐';
@@ -255,7 +244,6 @@ function placeStars() {
   });
 }
 
-// Background Icons
 const icons=['🎉','💖','🌸','💐','❤️'];
 setInterval(()=>{
   const e=document.createElement('div'); e.className='effect';
@@ -264,7 +252,6 @@ setInterval(()=>{
   document.body.appendChild(e); setTimeout(()=>e.remove(),10000);
 },400);
 
-// Wheel
 const gifts = ["Chocolates 🍫", "Teddy 🧸", "Hand Bag 👜", "Try Again 🔄", "Surprise 🎁", "Speaker 🔊"];
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
