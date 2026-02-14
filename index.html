@@ -27,13 +27,11 @@
   }
   button:disabled { background: #aaa; cursor: not-allowed; opacity: 0.7; }
 
-  /* Typewriter Area */
   #typewriter {
     max-width: 600px; margin: 20px auto; font-size: 18px; 
     line-height: 1.6; min-height: 80px; font-style: italic; padding: 0 15px;
   }
 
-  /* POLAROID STACK */
   .swiper { width: 300px; height: 380px; padding: 20px; margin: 10px auto; }
   .swiper-slide {
     background: white; border-radius: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -43,16 +41,13 @@
   .swiper-slide img { width: 100%; height: 260px; object-fit: cover; border: 1px solid #eee; }
   .polaroid-caption { font-family: 'Brush Script MT', cursive; font-size: 20px; margin-top: 10px; color: #444; }
 
-  /* UI & Input */
   .countdown { font-size: 32px; font-weight: bold; margin: 20px auto; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
   .input-group { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; max-width: 400px; margin: 20px auto; }
   input, textarea { width: 90%; padding: 10px; margin: 5px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; }
   
-  /* Message Board */
   #messages-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
   .wish-card { background: #ffff88; width: 250px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; }
   
-  /* Visual Effects */
   .effect { position: fixed; top: -50px; animation: fall linear infinite; z-index: 10; pointer-events: none; }
   @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
   .scavenger-item { cursor: pointer; font-size: 40px; position: absolute; z-index: 1000; }
@@ -74,7 +69,7 @@
 
 <div class="page active" id="page1">
   <h1>🎉 Countdown to the Big Day 🎉</h1>
-  <div class="countdown" id="countdown">Loading...</div>
+  <div class="countdown" id="countdown">Loading (CST)...</div>
   <p id="lockMessage" style="color: white; font-weight: bold;">Locked until Feb 14th 🔒</p>
   <button id="entryBtn" onclick="goToPage(2)" disabled>Go to Birthday Wishes 🎂</button>
   
@@ -196,9 +191,7 @@ function toggleMusic() {
 function goToPage(num) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page'+num).classList.add('active');
-  
   if(num >= 2 && !musicPlaying) toggleMusic();
-  
   if(num === 2) {
     startTypewriter();
     if(!swiperInstance) {
@@ -224,15 +217,18 @@ if(new URLSearchParams(window.location.search).get('mode') === 'friends') {
     document.getElementById('lockMessage').innerText = "Guest Access Enabled ✅";
 }
 
-const target = new Date('Feb 14, 2026 00:00:00').getTime();
+// TARGET TIME: Feb 14, 2026, 00:00:00 CST (UTC-6)
+const target = new Date('2026-02-14T00:00:00-06:00').getTime();
+
 setInterval(() => {
   const diff = target - Date.now();
   if (diff <= 0) {
     document.getElementById('countdown').innerHTML = "🎉 HAPPY BIRTHDAY! 🎉";
     document.getElementById('entryBtn').disabled = false;
+    document.getElementById('lockMessage').style.display = 'none';
   } else {
     const d = Math.floor(diff/86400000), h = Math.floor(diff/3600000)%24, m = Math.floor(diff/60000)%60, s = Math.floor(diff/1000)%60;
-    document.getElementById('countdown').innerHTML = `${d}d ${h}h ${m}s`;
+    document.getElementById('countdown').innerHTML = `${d}d ${h}h ${m}m ${s}s`;
   }
 }, 1000);
 
@@ -294,7 +290,6 @@ function spinWheel() {
   }
   requestAnimationFrame(animate);
 }
-
 window.onload = placeStars;
 </script>
 </body>
