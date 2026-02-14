@@ -32,7 +32,7 @@
     line-height: 1.6; min-height: 80px; font-style: italic; padding: 0 15px;
   }
 
-  /* Swiper Styles */
+  /* Swiper */
   .swiper { width: 300px; height: 380px; padding: 20px; margin: 10px auto; }
   .swiper-slide {
     background: white; border-radius: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -47,16 +47,13 @@
   .input-group { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; max-width: 400px; margin: 20px auto; }
   input, textarea { width: 90%; padding: 10px; margin: 5px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; }
   
-  /* Guest Book Styling */
+  /* Guest Book */
   #messages-container { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
-  .wish-card { background: #ffff88; width: 90%; max-width: 450px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; position: relative; }
-  .wish-card h3 { margin: 0; color: #ff4d6d; }
+  .wish-card { background: #ffff88; width: 90%; max-width: 450px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; }
   .card-actions { border-top: 1px solid rgba(0,0,0,0.1); margin-top: 10px; padding-top: 10px; }
-  .like-btn { background: none; box-shadow: none; color: #ff4d6d; padding: 5px 10px; font-size: 14px; }
   .comment-section { margin-top: 10px; font-size: 14px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 5px; }
   .comment-item { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 3px 0; }
   .comment-input-area { display: flex; margin-top: 5px; gap: 5px; }
-  .comment-input-area input { font-size: 12px; padding: 5px; }
 
   /* Visual Effects */
   .effect { position: fixed; top: -50px; animation: fall linear infinite; z-index: 10; pointer-events: none; }
@@ -82,6 +79,12 @@
   <div class="countdown" id="countdown">Loading (CST)...</div>
   <p id="lockMessage" style="color: white; font-weight: bold;">Locked until Feb 14th 🔒</p>
   <button id="entryBtn" onclick="goToPage(2)" disabled>Go to Birthday Wishes 🎂</button>
+  
+  <div id="friendsOnly" style="display:none; margin-top: 20px; border-top: 1px dashed white; padding-top: 20px;">
+      <p style="color: white; font-weight: bold;">Friend Access Unlocked! ✨</p>
+      <button onclick="goToPage(2)" style="background: #4CAF50;">View Memories 🎈</button>
+      <button onclick="goToPage(4)" style="background: #2196F3;">Go to Guest Book ✍️</button>
+  </div>
 </div>
 
 <div class="page" id="page2">
@@ -121,7 +124,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+  import { getDatabase, ref, push, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCgWYC7M9MdvFEpgSkNIrnXUlf57_YeTb4",
@@ -137,7 +140,6 @@
   const db = getDatabase(app);
   const messagesRef = ref(db, 'wishes');
 
-  // POST MESSAGE
   document.getElementById('postBtn').onclick = () => {
     const name = document.getElementById('senderName').value;
     const msg = document.getElementById('senderMsg').value;
@@ -149,23 +151,19 @@
     }
   };
 
-  // LIKE LOGIC
   window.likeMessage = (id) => {
     const likeRef = ref(db, `wishes/${id}/likes`);
-    runTransaction(likeRef, (currentLikes) => (currentLikes || 0) + 1);
+    runTransaction(likeRef, (c) => (c || 0) + 1);
   };
 
-  // COMMENT LOGIC
   window.addComment = (id) => {
-    const cInput = document.getElementById(`comment-in-${id}`);
-    if(cInput.value) {
-      const commentRef = ref(db, `wishes/${id}/comments`);
-      push(commentRef, { text: cInput.value });
-      cInput.value = '';
+    const cin = document.getElementById(`comment-in-${id}`);
+    if(cin.value) {
+      push(ref(db, `wishes/${id}/comments`), { text: cin.value });
+      cin.value = '';
     }
   };
 
-  // RENDER GUESTBOOK
   onValue(messagesRef, (snap) => {
     const cont = document.getElementById('messages-container');
     cont.innerHTML = '';
@@ -173,26 +171,14 @@
     if(data) {
       Object.keys(data).reverse().forEach(id => {
         const w = data[id];
-        let commentsHTML = '';
-        if(w.comments) {
-          Object.values(w.comments).forEach(c => {
-            commentsHTML += `<div class="comment-item">💬 ${c.text}</div>`;
-          });
-        }
-
+        let cHTML = '';
+        if(w.comments) Object.values(w.comments).forEach(c => cHTML += `<div class="comment-item">💬 ${c.text}</div>`);
         cont.innerHTML += `
           <div class="wish-card">
-            <h3>${w.name}</h3>
-            <p>${w.msg}</p>
-            <div class="card-actions">
-              <button class="like-btn" onclick="likeMessage('${id}')">❤️ ${w.likes || 0}</button>
-            </div>
-            <div class="comment-section">
-              ${commentsHTML}
-              <div class="comment-input-area">
-                <input type="text" id="comment-in-${id}" placeholder="Add a comment...">
-                <button onclick="addComment('${id}')" style="padding:5px 10px; font-size:12px;">Add</button>
-              </div>
+            <h3>${w.name}</h3><p>${w.msg}</p>
+            <div class="card-actions"><button onclick="likeMessage('${id}')" style="background:none; color:#ff4d6d; box-shadow:none;">❤️ ${w.likes || 0}</button></div>
+            <div class="comment-section">${cHTML}
+              <div class="comment-input-area"><input type="text" id="comment-in-${id}" placeholder="Reply..."><button onclick="addComment('${id}')" style="padding:2px 8px; font-size:12px;">Add</button></div>
             </div>
           </div>`;
       });
@@ -201,9 +187,7 @@
 </script>
 
 <script>
-let swiperInstance = null;
-let starsFound = 0;
-let musicPlaying = false;
+let swiperInstance = null, starsFound = 0, musicPlaying = false;
 
 function toggleMusic() {
     const audio = document.getElementById('bgMusic');
@@ -219,9 +203,7 @@ function goToPage(num) {
   if(num >= 2 && !musicPlaying) toggleMusic();
   if(num === 2) {
     startTypewriter();
-    if(!swiperInstance) {
-      swiperInstance = new Swiper('.swiper', { effect: 'cards', grabCursor: true, loop: true });
-    }
+    if(!swiperInstance) swiperInstance = new Swiper('.swiper', { effect: 'cards', grabCursor: true, loop: true });
   }
   window.scrollTo(0,0);
 }
@@ -229,23 +211,31 @@ function goToPage(num) {
 function startTypewriter() {
   const el = document.getElementById('typewriter');
   if(el.innerHTML !== "") return;
-  const str = "Happy Birthday to the amazing Pravallika! 🎂 You truly make the world a brighter and more beautiful place just by being yourself. ✨💖 May your day be overflowing with as much love, laughter, and magic as you generously give to everyone around you! 🌸🥂 I hope this year brings you endless joy and the fulfillment of all your biggest dreams. 🌟🎈 Keep shining like the star you are! 💎💕";
+  const str = "Happy Birthday to the amazing Pravallika! 🎂 You truly make the world a brighter and more beautiful place just by being yourself. ✨💖 May your day be overflowing with as much love, laughter, and magic as you generously give to everyone around you! 🌸🥂 Keep shining like the star you are! 💎💕";
   let i = 0;
   function type() { if(i < str.length) { el.innerHTML += str.charAt(i++); setTimeout(type, 50); } }
   type();
 }
 
-// CST TIMER (Feb 14, 2026 UTC-6)
+// RESTORED: Friend Mode Logic
+if(new URLSearchParams(window.location.search).get('mode') === 'friends') {
+    document.getElementById('friendsOnly').style.display = 'block';
+    document.getElementById('lockMessage').innerText = "Guest Access Enabled ✅";
+}
+
+// CST TIMER
 const target = new Date('2026-02-14T00:00:00-06:00').getTime();
 setInterval(() => {
   const diff = target - Date.now();
+  const countEl = document.getElementById('countdown');
+  const btn = document.getElementById('entryBtn');
   if (diff <= 0) {
-    document.getElementById('countdown').innerHTML = "🎉 HAPPY BIRTHDAY! 🎉";
-    document.getElementById('entryBtn').disabled = false;
+    countEl.innerHTML = "🎉 HAPPY BIRTHDAY! 🎉";
+    btn.disabled = false;
     document.getElementById('lockMessage').style.display = 'none';
   } else {
     const d = Math.floor(diff/86400000), h = Math.floor(diff/3600000)%24, m = Math.floor(diff/60000)%60, s = Math.floor(diff/1000)%60;
-    document.getElementById('countdown').innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+    countEl.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
   }
 }, 1000);
 
@@ -282,49 +272,35 @@ setInterval(()=>{
 const gifts = ["Chocolates 🍫", "Teddy 🧸", "Hand Bag 👜", "Try Again 🔄", "Surprise 🎁", "Speaker 🔊"];
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
-
 function drawWheel(rot = 0) {
   const arc = Math.PI*2/6;
   ctx.clearRect(0,0,350,350);
   for(let i=0; i<6; i++) {
-    ctx.beginPath(); 
-    ctx.fillStyle = ["#ffbe0b","#fb5607","#ff006e","#8338ec","#3a86ff","#06d6a0"][i];
+    ctx.beginPath(); ctx.fillStyle = ["#ffbe0b","#fb5607","#ff006e","#8338ec","#3a86ff","#06d6a0"][i];
     ctx.moveTo(175,175); ctx.arc(175,175,170, i*arc+rot, (i+1)*arc+rot); ctx.fill();
-    ctx.save(); 
-    ctx.translate(175,175); ctx.rotate(i*arc+rot+arc/2);
-    ctx.textAlign="right"; ctx.fillStyle="#fff"; ctx.font="bold 16px Arial"; 
-    ctx.fillText(gifts[i], 160, 5); ctx.restore();
+    ctx.save(); ctx.translate(175,175); ctx.rotate(i*arc+rot+arc/2);
+    ctx.textAlign="right"; ctx.fillStyle="#fff"; ctx.font="bold 16px Arial"; ctx.fillText(gifts[i], 160, 5); ctx.restore();
   }
 }
 drawWheel(0);
-
 function spinWheel() {
   const btn = document.getElementById('spinBtn');
-  const resultText = document.getElementById('giftResult');
-  btn.disabled = true;
-  resultText.innerText = "Spinning...";
-
-  let start = performance.now();
-  let duration = 4000;
-  let totalRotationDegrees = 1440 + Math.random() * 360; 
-
+  const res = document.getElementById('giftResult');
+  btn.disabled = true; res.innerText = "Spinning...";
+  let start = performance.now(), duration = 4000, totalRot = 1440 + Math.random() * 360; 
   function animate(t) {
-    let prog = Math.min((t-start)/duration, 1);
-    let ease = 1 - Math.pow(1 - prog, 3); 
-    let rot = (totalRotationDegrees * ease) * Math.PI/180;
-    drawWheel(rot);
-    if(prog < 1) { requestAnimationFrame(animate); } 
+    let prog = Math.min((t-start)/duration, 1), ease = 1 - Math.pow(1 - prog, 3);
+    drawWheel((totalRot * ease) * Math.PI/180);
+    if(prog < 1) requestAnimationFrame(animate);
     else {
-        let finalDegrees = (totalRotationDegrees % 360);
-        let index = Math.floor(((360 - finalDegrees + 270) % 360) / 60);
+        let final = totalRot % 360, index = Math.floor(((360 - final + 270) % 360) / 60);
         let won = gifts[index];
-        if(won.includes("Try Again")) { resultText.innerText = "Oh no! Try Again 🔄"; btn.disabled = false; } 
-        else { resultText.innerText = "Winner: " + won + "! 🎉"; confetti({ particleCount: 200, spread: 100 }); btn.innerText = "Prize Claimed! 🏆"; }
+        if(won.includes("Try Again")) { res.innerText = "Try Again 🔄"; btn.disabled = false; } 
+        else { res.innerText = "Winner: " + won + "! 🎉"; confetti({ particleCount: 200 }); btn.innerText = "Claimed! 🏆"; }
     }
   }
   requestAnimationFrame(animate);
 }
-
 window.onload = placeStars;
 </script>
 </body>
