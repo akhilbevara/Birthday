@@ -19,21 +19,20 @@
   .page.active { display: block; }
 
   button {
-    padding: 14px 30px; border-radius: 30px; border: none;
+    padding: 12px 25px; border-radius: 30px; border: none;
     background: linear-gradient(45deg, #ff4d6d, #ff758c);
-    color: white; font-size: 18px; font-weight: bold; cursor: pointer;
+    color: white; font-size: 16px; font-weight: bold; cursor: pointer;
     box-shadow: 0 4px 15px rgba(230, 57, 80, 0.3);
-    transition: 0.3s; margin: 10px; position: relative; z-index: 100;
+    transition: 0.3s; margin: 5px; position: relative; z-index: 100;
   }
   button:disabled { background: #aaa; cursor: not-allowed; opacity: 0.7; }
 
-  /* Typewriter Area */
   #typewriter {
     max-width: 600px; margin: 20px auto; font-size: 18px; 
     line-height: 1.6; min-height: 80px; font-style: italic; padding: 0 15px;
   }
 
-  /* POLAROID STACK */
+  /* Swiper Styles */
   .swiper { width: 300px; height: 380px; padding: 20px; margin: 10px auto; }
   .swiper-slide {
     background: white; border-radius: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -48,9 +47,18 @@
   .input-group { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; max-width: 400px; margin: 20px auto; }
   input, textarea { width: 90%; padding: 10px; margin: 5px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; }
   
-  #messages-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
-  .wish-card { background: #ffff88; width: 250px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; }
-  
+  /* Guest Book Styling */
+  #messages-container { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
+  .wish-card { background: #ffff88; width: 90%; max-width: 450px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; position: relative; }
+  .wish-card h3 { margin: 0; color: #ff4d6d; }
+  .card-actions { border-top: 1px solid rgba(0,0,0,0.1); margin-top: 10px; padding-top: 10px; }
+  .like-btn { background: none; box-shadow: none; color: #ff4d6d; padding: 5px 10px; font-size: 14px; }
+  .comment-section { margin-top: 10px; font-size: 14px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 5px; }
+  .comment-item { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 3px 0; }
+  .comment-input-area { display: flex; margin-top: 5px; gap: 5px; }
+  .comment-input-area input { font-size: 12px; padding: 5px; }
+
+  /* Visual Effects */
   .effect { position: fixed; top: -50px; animation: fall linear infinite; z-index: 10; pointer-events: none; }
   @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
   .scavenger-item { cursor: pointer; font-size: 40px; position: absolute; z-index: 1000; }
@@ -67,7 +75,6 @@
 <body>
 
 <audio id="bgMusic" loop><source src="https://www.orangefreesounds.com/wp-content/uploads/2016/08/Happy-birthday-instrumental.mp3" type="audio/mpeg"></audio>
-
 <div id="musicToggle" onclick="toggleMusic()">🎵</div>
 
 <div class="page active" id="page1">
@@ -75,12 +82,6 @@
   <div class="countdown" id="countdown">Loading (CST)...</div>
   <p id="lockMessage" style="color: white; font-weight: bold;">Locked until Feb 14th 🔒</p>
   <button id="entryBtn" onclick="goToPage(2)" disabled>Go to Birthday Wishes 🎂</button>
-  
-  <div id="friendsOnly" style="display:none; margin-top: 20px; border-top: 1px dashed white; padding-top: 20px;">
-      <p style="color: white; font-weight: bold;">Friend Access Unlocked! ✨</p>
-      <button onclick="goToPage(2)" style="background: #4CAF50;">View Memories 🎈</button>
-      <button onclick="goToPage(4)" style="background: #2196F3;">Go to Guest Book ✍️</button>
-  </div>
 </div>
 
 <div class="page" id="page2">
@@ -120,7 +121,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+  import { getDatabase, ref, push, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCgWYC7M9MdvFEpgSkNIrnXUlf57_YeTb4",
@@ -136,17 +137,35 @@
   const db = getDatabase(app);
   const messagesRef = ref(db, 'wishes');
 
+  // POST MESSAGE
   document.getElementById('postBtn').onclick = () => {
     const name = document.getElementById('senderName').value;
     const msg = document.getElementById('senderMsg').value;
     if(name && msg) {
-      push(messagesRef, { name, msg });
+      push(messagesRef, { name, msg, likes: 0, comments: {} });
       document.getElementById('senderName').value = '';
       document.getElementById('senderMsg').value = '';
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 } });
     }
   };
 
+  // LIKE LOGIC
+  window.likeMessage = (id) => {
+    const likeRef = ref(db, `wishes/${id}/likes`);
+    runTransaction(likeRef, (currentLikes) => (currentLikes || 0) + 1);
+  };
+
+  // COMMENT LOGIC
+  window.addComment = (id) => {
+    const cInput = document.getElementById(`comment-in-${id}`);
+    if(cInput.value) {
+      const commentRef = ref(db, `wishes/${id}/comments`);
+      push(commentRef, { text: cInput.value });
+      cInput.value = '';
+    }
+  };
+
+  // RENDER GUESTBOOK
   onValue(messagesRef, (snap) => {
     const cont = document.getElementById('messages-container');
     cont.innerHTML = '';
@@ -154,7 +173,28 @@
     if(data) {
       Object.keys(data).reverse().forEach(id => {
         const w = data[id];
-        cont.innerHTML += `<div class="wish-card"><h3>${w.name}</h3><p>${w.msg}</p></div>`;
+        let commentsHTML = '';
+        if(w.comments) {
+          Object.values(w.comments).forEach(c => {
+            commentsHTML += `<div class="comment-item">💬 ${c.text}</div>`;
+          });
+        }
+
+        cont.innerHTML += `
+          <div class="wish-card">
+            <h3>${w.name}</h3>
+            <p>${w.msg}</p>
+            <div class="card-actions">
+              <button class="like-btn" onclick="likeMessage('${id}')">❤️ ${w.likes || 0}</button>
+            </div>
+            <div class="comment-section">
+              ${commentsHTML}
+              <div class="comment-input-area">
+                <input type="text" id="comment-in-${id}" placeholder="Add a comment...">
+                <button onclick="addComment('${id}')" style="padding:5px 10px; font-size:12px;">Add</button>
+              </div>
+            </div>
+          </div>`;
       });
     }
   });
@@ -191,13 +231,11 @@ function startTypewriter() {
   if(el.innerHTML !== "") return;
   const str = "Happy Birthday to the amazing Pravallika! 🎂 You truly make the world a brighter and more beautiful place just by being yourself. ✨💖 May your day be overflowing with as much love, laughter, and magic as you generously give to everyone around you! 🌸🥂 I hope this year brings you endless joy and the fulfillment of all your biggest dreams. 🌟🎈 Keep shining like the star you are! 💎💕";
   let i = 0;
-  function type() {
-    if(i < str.length) { el.innerHTML += str.charAt(i++); setTimeout(type, 50); }
-  }
+  function type() { if(i < str.length) { el.innerHTML += str.charAt(i++); setTimeout(type, 50); } }
   type();
 }
 
-// CST TIMER LOGIC
+// CST TIMER (Feb 14, 2026 UTC-6)
 const target = new Date('2026-02-14T00:00:00-06:00').getTime();
 setInterval(() => {
   const diff = target - Date.now();
@@ -210,11 +248,6 @@ setInterval(() => {
     document.getElementById('countdown').innerHTML = `${d}d ${h}h ${m}m ${s}s`;
   }
 }, 1000);
-
-if(new URLSearchParams(window.location.search).get('mode') === 'friends') {
-    document.getElementById('friendsOnly').style.display = 'block';
-    document.getElementById('lockMessage').innerText = "Guest Access Enabled ✅";
-}
 
 function collectStar(el) {
   if (!el.classList.contains('found')) {
@@ -245,7 +278,7 @@ setInterval(()=>{
   document.body.appendChild(e); setTimeout(()=>e.remove(),10000);
 },400);
 
-// WHEEL LOGIC (FIXED)
+// WHEEL LOGIC
 const gifts = ["Chocolates 🍫", "Teddy 🧸", "Hand Bag 👜", "Try Again 🔄", "Surprise 🎁", "Speaker 🔊"];
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
@@ -273,31 +306,20 @@ function spinWheel() {
 
   let start = performance.now();
   let duration = 4000;
-  let extraRot = Math.random() * 360;
-  let totalRotationDegrees = 1440 + extraRot; 
+  let totalRotationDegrees = 1440 + Math.random() * 360; 
 
   function animate(t) {
     let prog = Math.min((t-start)/duration, 1);
     let ease = 1 - Math.pow(1 - prog, 3); 
     let rot = (totalRotationDegrees * ease) * Math.PI/180;
     drawWheel(rot);
-    
-    if(prog < 1) {
-      requestAnimationFrame(animate);
-    } else {
+    if(prog < 1) { requestAnimationFrame(animate); } 
+    else {
         let finalDegrees = (totalRotationDegrees % 360);
-        let sliceSize = 360 / 6;
-        let index = Math.floor(((360 - finalDegrees + 270) % 360) / sliceSize);
+        let index = Math.floor(((360 - finalDegrees + 270) % 360) / 60);
         let won = gifts[index];
-
-        if(won.includes("Try Again")) {
-          resultText.innerText = "Oh no! Try Again 🔄";
-          btn.disabled = false;
-        } else {
-          resultText.innerText = "Winner: " + won + "! 🎉";
-          confetti({ particleCount: 200, spread: 100 });
-          btn.innerText = "Prize Claimed! 🏆";
-        }
+        if(won.includes("Try Again")) { resultText.innerText = "Oh no! Try Again 🔄"; btn.disabled = false; } 
+        else { resultText.innerText = "Winner: " + won + "! 🎉"; confetti({ particleCount: 200, spread: 100 }); btn.innerText = "Prize Claimed! 🏆"; }
     }
   }
   requestAnimationFrame(animate);
