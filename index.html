@@ -33,7 +33,7 @@
     line-height: 1.6; min-height: 80px; font-style: italic; padding: 0 15px;
   }
 
-  /* POLAROID STACK FIX */
+  /* POLAROID STACK */
   .swiper { width: 300px; height: 380px; padding: 20px; margin: 10px auto; }
   .swiper-slide {
     background: white; border-radius: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -103,6 +103,10 @@
         <img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic3.jpeg">
         <div class="polaroid-caption">Memory 3 💖</div>
       </div>
+      <div class="swiper-slide">
+        <img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic4.jpeg">
+        <div class="polaroid-caption">Memory 4 ✨</div>
+      </div>
     </div>
   </div>
 
@@ -128,11 +132,10 @@
 
 <div class="page" id="page3">
   <h1>🎡 The Birthday Gift Wheel 🎡</h1>
-  <p>You found all the stars! Spin for your birthday gift! 🎁</p>
   <canvas id="wheelCanvas" width="350" height="350" style="margin:auto; display:block;"></canvas><br>
   <button id="spinBtn" onclick="spinWheel()">Spin for a Gift!</button>
   <h2 id="giftResult"></h2>
-  <button onclick="goToPage(4)" style="background: #777;">Back to Guest Book 🔙</button>
+  <button onclick="goToPage(4)">Back to Guest Book 🔙</button>
 </div>
 
 <script type="module">
@@ -229,7 +232,7 @@ setInterval(() => {
     document.getElementById('entryBtn').disabled = false;
   } else {
     const d = Math.floor(diff/86400000), h = Math.floor(diff/3600000)%24, m = Math.floor(diff/60000)%60, s = Math.floor(diff/1000)%60;
-    document.getElementById('countdown').innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+    document.getElementById('countdown').innerHTML = `${d}d ${h}h ${m}s`;
   }
 }, 1000);
 
