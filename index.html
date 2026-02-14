@@ -2,19 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Birthday Wishes – Pravallika Vadla (Local Logic Test)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Pravallika Vadla</title>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <style>
+  :root { --bg-color: #000; }
+  
   body {
     margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    background-color: var(--bg-color);
+    transition: background 1.5s ease-in-out;
     text-align: center; color: #333; overflow-x: hidden;
   }
   
+  /* Dark Overlay */
+  #darkOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 1000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; transition: opacity 1.5s ease;
+  }
+
+  .switch-container { cursor: pointer; text-align: center; }
+  .switch-label { color: #888; font-size: 14px; margin-top: 15px; font-weight: bold; letter-spacing: 1px; }
+  #lightSwitch {
+    font-size: 60px; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+    transition: transform 0.2s, filter 0.3s;
+  }
+  #lightSwitch:hover { filter: drop-shadow(0 0 30px rgba(255, 230, 100, 0.8)); }
+  #lightSwitch:active { transform: scale(0.9); }
+
+  #mainWrapper { opacity: 0; visibility: hidden; transition: opacity 1.5s ease; }
+
   .page { display: none; min-height: 100vh; padding: 40px 10px; box-sizing: border-box; }
   .page.active { display: block; }
 
@@ -25,24 +47,39 @@
     box-shadow: 0 4px 15px rgba(230, 57, 80, 0.3);
     transition: 0.3s; margin: 5px; position: relative; z-index: 100;
   }
-  button:disabled { background: #aaa; cursor: not-allowed; opacity: 0.7; }
+  button:disabled { background: #aaa; cursor: not-allowed; opacity: 0.7; box-shadow: none; }
 
-  #typewriter {
-    max-width: 600px; margin: 20px auto; font-size: 18px; 
-    line-height: 1.6; min-height: 80px; font-style: italic; padding: 0 15px;
+  /* Landing Page Message */
+  .brighter-msg {
+    color: white; font-size: 20px; font-style: italic; margin-bottom: 20px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2); animation: fadeIn 2s ease;
   }
 
-  /* Swiper Styles */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Countdown UI */
+  .countdown-container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px); border-radius: 20px;
+    padding: 30px; margin: 20px auto; max-width: 450px;
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  }
+  .timer-units { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+  .unit { background: white; color: #ff4d6d; padding: 10px; border-radius: 10px; min-width: 60px; }
+  .unit span { display: block; font-size: 24px; font-weight: 800; }
+  .unit label { font-size: 10px; text-transform: uppercase; color: #777; }
+
+  #typewriter { max-width: 600px; margin: 20px auto; font-size: 18px; line-height: 1.6; min-height: 80px; font-style: italic; padding: 0 15px; }
+
   .swiper { width: 300px; height: 380px; padding: 20px; margin: 10px auto; }
   .swiper-slide {
     background: white; border-radius: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    display: flex; flex-direction: column; align-items: center;
-    padding: 12px; box-sizing: border-box; border: 1px solid #ddd;
+    display: flex; flex-direction: column; align-items: center; padding: 12px; box-sizing: border-box; border: 1px solid #ddd;
   }
   .swiper-slide img { width: 100%; height: 260px; object-fit: cover; border: 1px solid #eee; }
   .polaroid-caption { font-family: 'Brush Script MT', cursive; font-size: 20px; margin-top: 10px; color: #444; }
 
-  /* Guest Book Styling */
   #messages-container { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
   .wish-card { background: #ffff88; width: 90%; max-width: 450px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; }
   .card-actions { border-top: 1px solid rgba(0,0,0,0.1); margin-top: 10px; padding-top: 10px; }
@@ -50,7 +87,6 @@
   .comment-item { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 3px 0; }
   .comment-input-area { display: flex; margin-top: 5px; gap: 5px; }
 
-  /* Effects */
   .effect { position: fixed; top: -50px; animation: fall linear infinite; z-index: 10; pointer-events: none; }
   @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
   .scavenger-item { cursor: pointer; font-size: 40px; position: absolute; z-index: 1000; }
@@ -66,57 +102,70 @@
 </head>
 <body>
 
+<audio id="clickSound" src="https://www.soundjay.com/buttons/button-3.mp3" preload="auto"></audio>
 <audio id="bgMusic" loop><source src="https://www.orangefreesounds.com/wp-content/uploads/2016/08/Happy-birthday-instrumental.mp3" type="audio/mpeg"></audio>
-<div id="musicToggle" onclick="toggleMusic()">🎵</div>
 
-<div class="page active" id="page1">
-  <h1>🎉 Something Amazing Awaiting For You 🎉</h1>
-  <p style="color:white;">Everything unlocked for final check.</p>
-  <button id="entryBtn" onclick="goToPage(2)">Go to Birthday Wishes 🎂</button>
-  
-  <div id="testNav" style="margin-top: 20px; border-top: 1px dashed white; padding-top: 20px;">
-      <p style="color: white; font-weight: bold;">Quick Jump:</p>
-      <button onclick="goToPage(2)" style="background: #4CAF50;">Memories 🎈</button>
-      <button onclick="goToPage(4)" style="background: #2196F3;">Guest Book ✍️</button>
+<div id="musicToggle" onclick="toggleMusic()" style="display:none;">🎵</div>
+
+<div id="darkOverlay">
+  <div class="switch-container" onclick="turnOnLights()">
+    <div id="lightSwitch">💡</div>
+    <div class="switch-label">CLICK TO BRIGHTEN THE DAY</div>
   </div>
 </div>
 
-<div class="page" id="page2">
-  <h1>Special Wishes 💖</h1>
-  <div id="typewriter"></div>
-  <div class="swiper">
-    <div class="swiper-wrapper">
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic1.jpeg"><div class="polaroid-caption">Memory 1 🎈</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic2.jpeg"><div class="polaroid-caption">Memory 2 😊</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic3.jpeg"><div class="polaroid-caption">Memory 3 💖</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic4.jpeg"><div class="polaroid-caption">Memory 4 ✨</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/Pic5.jpeg"><div class="polaroid-caption">Memory 5 🌸</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic6.jpeg"><div class="polaroid-caption">Memory 6 💐</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic9.jpeg"><div class="polaroid-caption">Memory 7 🌟</div></div>
+<div id="mainWrapper">
+  <div class="page active" id="page1">
+    <p class="brighter-msg">“The world feels brighter when you’re in it.”</p>
+    <div class="countdown-container">
+      <p id="timerStatus" style="color: white; margin: 0; font-weight: bold;">Locked until Feb 14th (CST)</p>
+      <div class="timer-units">
+          <div class="unit"><span id="days">00</span><label>Days</label></div>
+          <div class="unit"><span id="hours">00</span><label>Hrs</label></div>
+          <div class="unit"><span id="mins">00</span><label>Min</label></div>
+          <div class="unit"><span id="secs">00</span><label>Sec</label></div>
+      </div>
     </div>
+    <button id="entryBtn" onclick="goToPage(2)" disabled>Enter Birthday Celebration 🎂</button>
   </div>
-  <p id="starTracker" style="font-weight:bold; color: #ff4d6d;">Stars Found: 0/3</p>
-  <button onclick="goToPage(4)">Go to Guest Book 📖</button>
-</div>
 
-<div class="page" id="page4">
-  <h1>📖 The Guest Book</h1>
-  <div class="input-group">
-    <input type="text" id="senderName" placeholder="Your Name">
-    <textarea id="senderMsg" rows="2" placeholder="Write something sweet..."></textarea>
-    <button id="postBtn">Post Wish 💌</button>
+  <div class="page" id="page2">
+    <h1>Special Wishes 💖</h1>
+    <div id="typewriter"></div>
+    <div class="swiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic1.jpeg"><div class="polaroid-caption">Memory 1 🎈</div></div>
+        <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic2.jpeg"><div class="polaroid-caption">Memory 2 😊</div></div>
+        <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic3.jpeg"><div class="polaroid-caption">Memory 3 💖</div></div>
+        <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic4.jpeg"><div class="polaroid-caption">Memory 4 ✨</div></div>
+        <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/Pic5.jpeg"><div class="polaroid-caption">Memory 5 🌸</div></div>
+        <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic6.jpeg"><div class="polaroid-caption">Memory 6 💐</div></div>
+        <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic9.jpeg"><div class="polaroid-caption">Memory 7 🌟</div></div>
+      </div>
+    </div>
+    <p id="starTracker" style="font-weight:bold; color: #ff4d6d;">Stars Found: 0/3</p>
+    <button onclick="goToPage(4)">Go to Guest Book 📖</button>
   </div>
-  <button id="unlockWheelBtn" onclick="goToPage(3)" style="display:none; background:#4CAF50;">✨ UNLOCKED: Spin the Wheel 🎡 ✨</button>
-  <div id="messages-container"></div>
-  <button onclick="goToPage(2)" style="background: #777;">Back to Photos 🔙</button>
-</div>
 
-<div class="page" id="page3">
-  <h1>🎡 The Birthday Gift Wheel 🎡</h1>
-  <canvas id="wheelCanvas" width="350" height="350" style="margin:auto; display:block;"></canvas><br>
-  <button id="spinBtn" onclick="spinWheel()">Spin for a Gift!</button>
-  <h2 id="giftResult" style="color: #ff4d6d; min-height: 40px;"></h2>
-  <button onclick="goToPage(4)">Back to Guest Book 🔙</button>
+  <div class="page" id="page4">
+    <h1>📖 The Guest Book</h1>
+    <div style="background: white; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+      <input type="text" id="senderName" placeholder="Your Name" style="width: 90%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd;">
+      <textarea id="senderMsg" rows="2" placeholder="Write something sweet..." style="width: 90%; padding: 10px; border-radius: 10px; border: 1px solid #ddd;"></textarea>
+      <button id="postBtn">Post Wish 💌</button>
+    </div>
+    <button id="unlockWheelBtn" onclick="goToPage(3)" style="display:none; background:#4CAF50; margin-top: 15px;">✨ UNLOCKED: Spin the Wheel 🎡 ✨</button>
+    <div id="messages-container"></div>
+    <button onclick="goToPage(2)" style="background: #777;">Back to Photos 🔙</button>
+  </div>
+
+  <div class="page" id="page3">
+    <h1>🎡 The Birthday Gift Wheel 🎡</h1>
+    <canvas id="wheelCanvas" width="350" height="350" style="margin:auto; display:block;"></canvas><br>
+    <button id="spinBtn" onclick="spinWheel()">Spin for a Gift!</button>
+    <h2 id="giftResult" style="color: #ff4d6d; min-height: 40px;"></h2>
+    <button onclick="goToPage(4)">Back to Guest Book 🔙</button>
+  </div>
 </div>
 
 <script type="module">
@@ -148,17 +197,10 @@
     }
   };
 
-  window.likeMessage = (id) => {
-    const likeRef = ref(db, `wishes/${id}/likes`);
-    runTransaction(likeRef, (c) => (c || 0) + 1);
-  };
-
+  window.likeMessage = (id) => { runTransaction(ref(db, `wishes/${id}/likes`), (c) => (c || 0) + 1); };
   window.addComment = (id) => {
     const cin = document.getElementById(`comment-in-${id}`);
-    if(cin.value) {
-      push(ref(db, `wishes/${id}/comments`), { text: cin.value });
-      cin.value = '';
-    }
+    if(cin.value) { push(ref(db, `wishes/${id}/comments`), { text: cin.value }); cin.value = ''; }
   };
 
   onValue(messagesRef, (snap) => {
@@ -170,14 +212,7 @@
         const w = data[id];
         let cHTML = '';
         if(w.comments) Object.values(w.comments).forEach(c => cHTML += `<div class="comment-item">💬 ${c.text}</div>`);
-        cont.innerHTML += `
-          <div class="wish-card">
-            <h3>${w.name}</h3><p>${w.msg}</p>
-            <div class="card-actions"><button onclick="likeMessage('${id}')" style="background:none; color:#ff4d6d; box-shadow:none;">❤️ ${w.likes || 0}</button></div>
-            <div class="comment-section">${cHTML}
-              <div class="comment-input-area"><input type="text" id="comment-in-${id}" placeholder="Reply..."><button onclick="addComment('${id}')" style="padding:2px 8px; font-size:12px;">Add</button></div>
-            </div>
-          </div>`;
+        cont.innerHTML += `<div class="wish-card"><h3>${w.name}</h3><p>${w.msg}</p><div class="card-actions"><button onclick="likeMessage('${id}')" style="background:none; color:#ff4d6d; box-shadow:none;">❤️ ${w.likes || 0}</button></div><div class="comment-section">${cHTML}<div class="comment-input-area"><input type="text" id="comment-in-${id}" placeholder="Reply..."><button onclick="addComment('${id}')">Add</button></div></div></div>`;
       });
     }
   });
@@ -185,6 +220,44 @@
 
 <script>
 let swiperInstance = null, starsFound = 0, musicPlaying = false;
+
+function turnOnLights() {
+    document.getElementById('clickSound').play();
+    document.getElementById('darkOverlay').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('darkOverlay').style.display = 'none';
+        document.body.style.background = 'linear-gradient(135deg, #ff9a9e, #fad0c4)';
+        document.getElementById('mainWrapper').style.visibility = 'visible';
+        document.getElementById('mainWrapper').style.opacity = '1';
+        document.getElementById('musicToggle').style.display = 'flex';
+        toggleMusic();
+        placeStars();
+    }, 1000);
+}
+
+const targetDate = new Date('2026-02-14T00:00:00-06:00').getTime();
+const timerInterval = setInterval(() => {
+    const now = new Date().getTime();
+    const diff = targetDate - now;
+    const entryBtn = document.getElementById('entryBtn');
+    const statusText = document.getElementById('timerStatus');
+
+    if (diff <= 0) {
+        clearInterval(timerInterval);
+        statusText.innerHTML = "🎉 THE WAIT IS OVER! 🎉";
+        entryBtn.disabled = false;
+        ['days','hours','mins','secs'].forEach(id => document.getElementById(id).innerText = "00");
+    } else {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        document.getElementById('days').innerText = String(d).padStart(2, '0');
+        document.getElementById('hours').innerText = String(h).padStart(2, '0');
+        document.getElementById('mins').innerText = String(m).padStart(2, '0');
+        document.getElementById('secs').innerText = String(s).padStart(2, '0');
+    }
+}, 1000);
 
 function toggleMusic() {
     const audio = document.getElementById('bgMusic');
@@ -197,7 +270,6 @@ function toggleMusic() {
 function goToPage(num) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page'+num).classList.add('active');
-  if(num >= 2 && !musicPlaying) toggleMusic();
   if(num === 2) {
     startTypewriter();
     if(!swiperInstance) swiperInstance = new Swiper('.swiper', { effect: 'cards', grabCursor: true, loop: true });
@@ -216,8 +288,7 @@ function startTypewriter() {
 
 function collectStar(el) {
   if (!el.classList.contains('found')) {
-    el.classList.add('found');
-    starsFound++;
+    el.classList.add('found'); starsFound++;
     document.getElementById('starTracker').innerText = `Stars Found: ${starsFound}/3`;
     confetti({ particleCount: 50 });
     if (starsFound === 3) document.getElementById('unlockWheelBtn').style.display = 'inline-block';
@@ -240,17 +311,16 @@ setInterval(()=>{
   const e=document.createElement('div'); e.className='effect';
   e.innerText=icons[Math.floor(Math.random()*icons.length)];
   e.style.left=Math.random()*100+'vw'; e.style.animationDuration=5+Math.random()*5+'s';
-  document.body.appendChild(e); setTimeout(()=>e.remove(),10000);
+  if(document.getElementById('mainWrapper').style.visibility === 'visible') document.body.appendChild(e);
+  setTimeout(()=>e.remove(),10000);
 },400);
 
 // WHEEL LOGIC
 const gifts = ["Chocolates 🍫", "Teddy 🧸", "Hand Bag 👜", "Try Again 🔄", "Surprise 🎁", "Speaker 🔊"];
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
-
 function drawWheel(rot = 0) {
-  const arc = Math.PI*2/6;
-  ctx.clearRect(0,0,350,350);
+  const arc = Math.PI*2/6; ctx.clearRect(0,0,350,350);
   for(let i=0; i<6; i++) {
     ctx.beginPath(); ctx.fillStyle = ["#ffbe0b","#fb5607","#ff006e","#8338ec","#3a86ff","#06d6a0"][i];
     ctx.moveTo(175,175); ctx.arc(175,175,170, i*arc+rot, (i+1)*arc+rot); ctx.fill();
@@ -259,10 +329,8 @@ function drawWheel(rot = 0) {
   }
 }
 drawWheel(0);
-
 function spinWheel() {
-  const btn = document.getElementById('spinBtn');
-  const res = document.getElementById('giftResult');
+  const btn = document.getElementById('spinBtn'); const res = document.getElementById('giftResult');
   btn.disabled = true; res.innerText = "Spinning...";
   let start = performance.now(), duration = 4000, totalRot = 1440 + Math.random() * 360; 
   function animate(t) {
@@ -278,8 +346,6 @@ function spinWheel() {
   }
   requestAnimationFrame(animate);
 }
-window.onload = placeStars;
 </script>
 </body>
 </html>
-
