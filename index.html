@@ -33,7 +33,7 @@
     line-height: 1.6; min-height: 80px; font-style: italic; padding: 0 15px;
   }
 
-  /* POLAROID STACK */
+  /* POLAROID STACK FIX */
   .swiper { width: 300px; height: 380px; padding: 20px; margin: 10px auto; }
   .swiper-slide {
     background: white; border-radius: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -43,12 +43,12 @@
   .swiper-slide img { width: 100%; height: 260px; object-fit: cover; border: 1px solid #eee; }
   .polaroid-caption { font-family: 'Brush Script MT', cursive; font-size: 20px; margin-top: 10px; color: #444; }
 
-  /* Countdown & Input UI */
+  /* UI & Input */
   .countdown { font-size: 32px; font-weight: bold; margin: 20px auto; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
   .input-group { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; max-width: 400px; margin: 20px auto; }
   input, textarea { width: 90%; padding: 10px; margin: 5px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; }
   
-  /* Message Board Styling */
+  /* Message Board */
   #messages-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
   .wish-card { background: #ffff88; width: 250px; padding: 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); text-align: left; }
   
@@ -91,15 +91,23 @@
 
   <div class="swiper">
     <div class="swiper-wrapper">
-       <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic1.jpeg"><div class="polaroid-caption">Memory 1 🎈</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic2.jpeg">Memory 2 😊</div></div>
-      <div class="swiper-slide"><img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic3.jpeg">Memory 3 💖</div></div>
- 
-    
+      <div class="swiper-slide">
+        <img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic1.jpeg">
+        <div class="polaroid-caption">Memory 1 🎈</div>
+      </div>
+      <div class="swiper-slide">
+        <img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic2.jpeg">
+        <div class="polaroid-caption">Memory 2 😊</div>
+      </div>
+      <div class="swiper-slide">
+        <img src="https://raw.githubusercontent.com/akhilbevara/Birthday/main/pics/pic3.jpeg">
+        <div class="polaroid-caption">Memory 3 💖</div>
+      </div>
+    </div>
   </div>
 
   <p id="starTracker" style="font-weight:bold; color: #ff4d6d;">Stars Found: 0/3</p>
-  <button onclick="goToPage(4)">Go to Guest Book ✍️</button>
+  <button onclick="goToPage(4)">Go to Guest Book 📖</button>
 </div>
 
 <div class="page" id="page4">
@@ -120,10 +128,11 @@
 
 <div class="page" id="page3">
   <h1>🎡 The Birthday Gift Wheel 🎡</h1>
+  <p>You found all the stars! Spin for your birthday gift! 🎁</p>
   <canvas id="wheelCanvas" width="350" height="350" style="margin:auto; display:block;"></canvas><br>
   <button id="spinBtn" onclick="spinWheel()">Spin for a Gift!</button>
   <h2 id="giftResult"></h2>
-  <button onclick="goToPage(4)">Back to Guest Book 🔙</button>
+  <button onclick="goToPage(4)" style="background: #777;">Back to Guest Book 🔙</button>
 </div>
 
 <script type="module">
@@ -287,15 +296,3 @@ window.onload = placeStars;
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
